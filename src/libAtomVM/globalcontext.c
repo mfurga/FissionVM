@@ -85,6 +85,7 @@ GlobalContext *globalcontext_new(void)
 
     ets_init(&glb->ets);
     popcorn_ets_init(&glb->popcorn_ets);
+    popcorn2_ets_init(&glb->popcorn2_ets);
 
     glb->last_process_id = 0;
 

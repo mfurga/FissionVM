@@ -536,8 +536,6 @@ static const struct Nif erts_internal_cmp_term_nif = {
     .nif_ptr = nif_erts_internal_cmp_term
 };
 
-// ETS
-
 static term nif_ets_new(Context *ctx, int argc, term argv[])
 {
     UNUSED(argc);
@@ -573,13 +571,15 @@ static term nif_ets_new(Context *ctx, int argc, term argv[])
     }
 
     term table = term_invalid_term();
-    PopcornEtsErrorCode result = popcorn_ets_create_table(name, is_named == TRUE_ATOM, type, access, (size_t) index, &table, ctx);
+
+    Popcorn2EtsStatus result = popcorn2_ets_create_table(name, is_named == TRUE_ATOM, type, access, (size_t) index, &table, ctx);
+
     switch (result) {
-        case PopcornEtsOk:
+        case Popcorn2EtsOk:
             return table;
-        case PopcornEtsTableNameInUse:
+        case Popcorn2EtsTableNameInUse:
             RAISE_ERROR(BADARG_ATOM);
-        case PopcornEtsAllocationFailure:
+        case Popcorn2EtsAllocationFailure:
             RAISE_ERROR(MEMORY_ATOM);
         default:
             AVM_ABORT();
@@ -600,14 +600,15 @@ static term nif_ets_insert(Context *ctx, int argc, term argv[])
 
     term entry = argv[1];
 
-    PopcornEtsErrorCode result = popcorn_ets_insert(ref, entry, NULL, ctx);
+    Popcorn2EtsStatus result = popcorn2_ets_insert(ref, entry, ctx);
+
     switch (result) {
-        case PopcornEtsOk:
+        case Popcorn2EtsOk:
             return TRUE_ATOM;
-        case PopcornEtsBadAccess:
-        case PopcornEtsBadEntry:
+        case Popcorn2EtsBadAccess:
+        case Popcorn2EtsBadEntry:
             RAISE_ERROR(BADARG_ATOM);
-        case PopcornEtsAllocationFailure:
+        case Popcorn2EtsAllocationFailure:
             RAISE_ERROR(MEMORY_ATOM);
         default:
             AVM_ABORT();
@@ -642,19 +643,20 @@ static term nif_ets_lookup(Context *ctx, int argc, term argv[])
     UNUSED(argc);
 
     term ref = argv[0];
+    term key = argv[1];
     VALIDATE_VALUE(ref, is_popcorn_ets_table_id);
 
-    term key = argv[1];
-
     term ret = term_invalid_term();
-    PopcornEtsErrorCode result = popcorn_ets_lookup(ref, key, &ret, ctx);
+
+    Popcorn2EtsStatus result = popcorn2_ets_lookup(ref, key, &ret, ctx);
+
     switch (result) {
-        case PopcornEtsOk:
+        case Popcorn2EtsOk:
             return ret;
-        case PopcornEtsBadAccess:
-        case PopcornEtsBadPosition:
+        case Popcorn2EtsBadAccess:
+        case Popcorn2EtsBadPosition:
             RAISE_ERROR(BADARG_ATOM);
-        case PopcornEtsAllocationFailure:
+        case Popcorn2EtsAllocationFailure:
             RAISE_ERROR(MEMORY_ATOM);
         default:
             AVM_ABORT();
@@ -800,20 +802,20 @@ static term nif_ets_delete(Context *ctx, int argc, term argv[])
     term ref = argv[0];
     VALIDATE_VALUE(ref, is_popcorn_ets_table_id);
     term ret = term_invalid_term();
-    PopcornEtsErrorCode result;
+
+    Popcorn2EtsStatus result;
     if (argc == 2) {
-        term key = argv[1];
-        result = popcorn_ets_delete(ref, key, &ret, ctx);
+        result = popcorn2_ets_delete(ref, argv[1], &ret, ctx);
     } else {
-        result = popcorn_ets_drop_table(ref, &ret, ctx);
+        result = popcorn2_ets_drop_table(ref, &ret, ctx);
     }
 
     switch (result) {
-        case PopcornEtsOk:
+        case Popcorn2EtsOk:
             return ret;
-        case PopcornEtsBadAccess:
+        case Popcorn2EtsBadAccess:
             RAISE_ERROR(BADARG_ATOM);
-        case PopcornEtsAllocationFailure:
+        case Popcorn2EtsAllocationFailure:
             RAISE_ERROR(MEMORY_ATOM);
         default:
             AVM_ABORT();
