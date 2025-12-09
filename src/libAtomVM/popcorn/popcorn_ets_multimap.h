@@ -31,10 +31,17 @@ extern "C" {
 
 #define NUM_BUCKETS 1
 
+typedef enum EtsMultimapType {
+    EtsMultimapTypeOne,  /* Only one value per key */
+    EtsMultimapTypeSet,  /* Only unique values per key */
+    EtsMultimapTypeList  /* Allow duplicate values per key */
+} EtsMultimapType;
+
 struct EtsMultimap
 {
-    struct EtsMultimapNode *buckets[NUM_BUCKETS];
+    EtsMultimapType type;
     size_t keypos;
+    struct EtsMultimapNode *buckets[NUM_BUCKETS];
 };
 
 struct EtsMultimapNode
@@ -52,10 +59,11 @@ struct EtsMultimapEntry
 
 typedef enum EtsMultimapStatus {
     EtsMultimapOk,
+    EtsMultimapKeyExists,
     EtsMultimapError
 } EtsMultimapStatus;
 
-struct EtsMultimap *ets_multimap_new(size_t keypos);
+struct EtsMultimap *ets_multimap_new(EtsMultimapType type, size_t keypos);
 void ets_multimap_destroy(struct EtsMultimap *multimap, GlobalContext *global);
 
 EtsMultimapStatus ets_multimap_insert(
@@ -65,11 +73,11 @@ EtsMultimapStatus ets_multimap_insert(
     GlobalContext *global
 );
 
-void ets_multimap_lookup(
+EtsMultimapStatus ets_multimap_lookup(
     struct EtsMultimap *multimap,
     term key,
-    term **tuples,  /* out */
-    size_t *count,  /* out */
+    term **tuples,
+    size_t *count,
     GlobalContext *global
 );
 

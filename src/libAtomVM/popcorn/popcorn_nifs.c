@@ -600,7 +600,7 @@ static term nif_ets_insert(Context *ctx, int argc, term argv[])
 
     term entry = argv[1];
 
-    Popcorn2EtsStatus result = popcorn2_ets_insert(ref, entry, ctx);
+    Popcorn2EtsStatus result = popcorn2_ets_insert(ref, entry, false, ctx);
 
     switch (result) {
         case Popcorn2EtsOk:
@@ -621,17 +621,18 @@ static term nif_ets_insert_new(Context *ctx, int argc, term argv[])
 
     term ref = argv[0];
     VALIDATE_VALUE(ref, is_popcorn_ets_table_id);
-    term to_insert = argv[1];
-    bool entry_inserted = false;
+    term entry = argv[1];
 
-    PopcornEtsErrorCode result = popcorn_ets_insert(ref, to_insert, &entry_inserted, ctx);
+    Popcorn2EtsStatus result = popcorn2_ets_insert(ref, entry, true, ctx);
+
     switch (result) {
-        case PopcornEtsOk:
-            return entry_inserted ? TRUE_ATOM : FALSE_ATOM;
-        case PopcornEtsBadAccess:
-        case PopcornEtsBadEntry:
+        case Popcorn2EtsOk:
+            return TRUE_ATOM;
+        case Popcorn2EtsKeyExists:
+            return FALSE_ATOM;
+        case Popcorn2EtsBadEntry:
             RAISE_ERROR(BADARG_ATOM);
-        case PopcornEtsAllocationFailure:
+        case Popcorn2EtsAllocationFailure:
             RAISE_ERROR(MEMORY_ATOM);
         default:
             AVM_ABORT();
