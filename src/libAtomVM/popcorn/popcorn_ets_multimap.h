@@ -63,8 +63,15 @@ typedef enum EtsMultimapStatus {
     EtsMultimapError
 } EtsMultimapStatus;
 
-struct EtsMultimap *ets_multimap_new(EtsMultimapType type, size_t keypos);
-void ets_multimap_destroy(struct EtsMultimap *multimap, GlobalContext *global);
+struct EtsMultimap *ets_multimap_new(
+    EtsMultimapType type,
+    size_t keypos
+);
+
+void ets_multimap_delete(
+    struct EtsMultimap *multimap,
+    GlobalContext *global
+);
 
 EtsMultimapStatus ets_multimap_insert(
     struct EtsMultimap *multimap,
@@ -81,7 +88,7 @@ EtsMultimapStatus ets_multimap_lookup(
     GlobalContext *global
 );
 
-bool ets_multimap_remove(
+EtsMultimapStatus ets_multimap_remove(
     struct EtsMultimap *multimap,
     term key,
     GlobalContext *global

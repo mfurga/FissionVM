@@ -55,7 +55,6 @@ typedef enum Popcorn2EtsStatus
     Popcorn2EtsOk,
     Popcorn2EtsKeyExists,
 
-
     Popcorn2EtsBadAccess,
     Popcorn2EtsTableNameInUse,
     Popcorn2EtsBadEntry,
@@ -86,7 +85,6 @@ void popcorn2_ets_delete_owned_tables(struct Popcorn2Ets *popcron_ets, int32_t p
 Popcorn2EtsStatus popcorn2_ets_insert(term ref, term entry, bool new, Context *ctx);
 Popcorn2EtsStatus popcorn2_ets_lookup(term ref, term key, term *ret, Context *ctx);
 Popcorn2EtsStatus popcorn2_ets_delete(term ref, term key, term *ret, Context *ctx);
-Popcorn2EtsStatus popcorn2_ets_drop_table(term ref, term *ret, Context *ctx);
 
 #ifdef __cplusplus
 }

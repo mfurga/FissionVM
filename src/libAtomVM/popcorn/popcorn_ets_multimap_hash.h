@@ -209,4 +209,4 @@ static uint32_t hash_term(term t, GlobalContext *global)
     return hash_term_incr(t, LARGE_PRIME_INITIAL, global);
 }
 
-#endif  //_POPCORN_ETS_MULTIMAP_HASH_H_
+#endif  // _POPCORN_ETS_MULTIMAP_HASH_H_

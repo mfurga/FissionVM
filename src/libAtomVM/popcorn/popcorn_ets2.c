@@ -194,7 +194,7 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
         *ret = name;
     } else {
         if (UNLIKELY(memory_ensure_free_opt(ctx, REF_SIZE, MEMORY_CAN_SHRINK) != MEMORY_GC_OK)) {
-            ets_multimap_destroy(multimap, ctx->global);
+            ets_multimap_delete(multimap, ctx->global);
             free(table);
             return Popcorn2EtsAllocationFailure;
         }
@@ -209,7 +209,7 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
 static void popcorn2_ets_table_destroy(struct Popcorn2EtsTable *table, GlobalContext *global)
 {
     SMP_WRLOCK(table);
-    ets_multimap_destroy(table->multimap, global);
+    ets_multimap_delete(table->multimap, global);
     SMP_UNLOCK(table);
 
 #ifndef AVM_NO_SMP
@@ -420,25 +420,6 @@ Popcorn2EtsStatus popcorn2_ets_delete(term ref, term key, term *ret, Context *ct
 
     (void)ets_multimap_remove(table->multimap, key, ctx->global);
     SMP_UNLOCK(table);
-
-    *ret = TRUE_ATOM;
-    return Popcorn2EtsOk;
-}
-
-Popcorn2EtsStatus popcorn2_ets_drop_table(term ref, term *ret, Context *ctx)
-{
-    struct Popcorn2EtsTable *table = popcorn2_ets_get_table(&ctx->global->popcorn2_ets, ctx->process_id, ref, TableAccessWrite);
-    if (table == NULL) {
-        return Popcorn2EtsBadAccess;
-    }
-
-    synclist_wrlock(&ctx->global->popcorn2_ets.ets_tables);
-    SMP_UNLOCK(table);
-
-    list_remove(&table->head);
-    popcorn2_ets_table_destroy(table, ctx->global);
-
-    synclist_unlock(&ctx->global->popcorn2_ets.ets_tables);
 
     *ret = TRUE_ATOM;
     return Popcorn2EtsOk;

@@ -564,9 +564,13 @@ static term nif_ets_new(Context *ctx, int argc, term argv[])
         access = PopcornEtsAccessPublic;
     }
 
+    term bag = interop_kv_get_value(options, ATOM_STR("\x3", "bag"), ctx->global);
+    term duplicate_bag = interop_kv_get_value(options, ATOM_STR("\xd", "duplicate_bag"), ctx->global);
+
     PopcornEtsTableType type = PopcornEtsTableSet;
-    term is_duplicate_bag = interop_kv_get_value_default(options, ATOM_STR("\xd", "duplicate_bag"), FALSE_ATOM, ctx->global) == TRUE_ATOM;
-    if (is_duplicate_bag) {
+    if (!term_is_invalid_term(bag)) {
+        type = PopcornEtsTableBag;
+    } else if (!term_is_invalid_term(duplicate_bag)) {
         type = PopcornEtsTableDuplicateBag;
     }
 
@@ -808,7 +812,7 @@ static term nif_ets_delete(Context *ctx, int argc, term argv[])
     if (argc == 2) {
         result = popcorn2_ets_delete(ref, argv[1], &ret, ctx);
     } else {
-        result = popcorn2_ets_drop_table(ref, &ret, ctx);
+        result = popcorn_ets_drop_table(ref, &ret, ctx);
     }
 
     switch (result) {
