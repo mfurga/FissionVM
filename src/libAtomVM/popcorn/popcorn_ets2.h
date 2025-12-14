@@ -34,7 +34,7 @@ struct GlobalContext;
 extern "C" {
 #endif
 
-// NOTE: Only set, bag and duplicate bag are currently supported
+// NOTE: Ordered set is not currently supported
 typedef enum Popcorn2EtsTableType
 {
     Popcorn2EtsTableSet,
@@ -54,13 +54,12 @@ typedef enum Popcorn2EtsStatus
 {
     Popcorn2EtsOk,
     Popcorn2EtsKeyExists,
+    Popcorn2EtsTableNameExists,
 
-    Popcorn2EtsBadAccess,
-    Popcorn2EtsTableNameInUse,
     Popcorn2EtsBadEntry,
-    Popcorn2EtsAllocationFailure,
-    Popcorn2EtsEntryNotFound,
-    Popcorn2EtsBadPosition
+    Popcorn2EtsBadAccess,
+
+    Popcorn2EtsAllocationFailure
 } Popcorn2EtsStatus;
 
 struct Popcorn2Ets
@@ -80,11 +79,11 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
     term *ret,
     Context *ctx
 );
-void popcorn2_ets_delete_owned_tables(struct Popcorn2Ets *popcron_ets, int32_t process_id, GlobalContext *global);
+void popcorn2_ets_delete_owned_tables(struct Popcorn2Ets *ets, int32_t process_id, GlobalContext *global);
 
-Popcorn2EtsStatus popcorn2_ets_insert(term ref, term entry, bool new, Context *ctx);
-Popcorn2EtsStatus popcorn2_ets_lookup(term ref, term key, term *ret, Context *ctx);
-Popcorn2EtsStatus popcorn2_ets_delete(term ref, term key, term *ret, Context *ctx);
+Popcorn2EtsStatus popcorn2_ets_insert(term name_or_ref, term entry, bool new, Context *ctx);
+Popcorn2EtsStatus popcorn2_ets_lookup(term name_or_ref, term key, term *ret, Context *ctx);
+Popcorn2EtsStatus popcorn2_ets_delete(term name_or_ref, term key, Context *ctx);
 
 #ifdef __cplusplus
 }

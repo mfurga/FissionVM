@@ -1,7 +1,6 @@
 /*
  * This file is part of AtomVM.
  *
- * Copyright 2024 Fred Dushin <fred@dushin.net>
  * Copyright 2025 Mateusz Furga <mateusz.furga@swmansion.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,11 +30,20 @@ extern "C" {
 
 #define NUM_BUCKETS 1
 
-typedef enum EtsMultimapType {
+typedef enum EtsMultimapType
+{
     EtsMultimapTypeOne,  /* Only one value per key */
     EtsMultimapTypeSet,  /* Only unique values per key */
     EtsMultimapTypeList  /* Allow duplicate values per key */
 } EtsMultimapType;
+
+typedef enum EtsMultimapStatus
+{
+    EtsMultimapOk,
+    EtsMultimapKeyExists,
+    EtsMultimapAllocationError,
+    EtsMultimapError
+} EtsMultimapStatus;
 
 struct EtsMultimap
 {
@@ -56,12 +64,6 @@ struct EtsMultimapEntry
     term tuple;
     Heap *heap;
 };
-
-typedef enum EtsMultimapStatus {
-    EtsMultimapOk,
-    EtsMultimapKeyExists,
-    EtsMultimapError
-} EtsMultimapStatus;
 
 struct EtsMultimap *ets_multimap_new(
     EtsMultimapType type,

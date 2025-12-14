@@ -1,7 +1,6 @@
 /*
  * This file is part of AtomVM.
  *
- * Copyright 2024 Fred Dushin <fred@dushin.net>
  * Copyright 2025 Mateusz Furga <mateusz.furga@swmansion.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +92,7 @@ EtsMultimapStatus ets_multimap_insert(
 
     struct EtsMultimapEntry **entries = malloc(sizeof(struct EtsMultimapEntry *) * count);
     if (IS_NULL_PTR(entries)) {
-        return EtsMultimapError;
+        return EtsMultimapAllocationError;
     }
 
     for (size_t i = 0; i < count; i++) {
@@ -103,7 +102,7 @@ EtsMultimapStatus ets_multimap_insert(
                 ets_multimap_entry_delete(entries[j], global);
             }
             free(entries);
-            return EtsMultimapError;
+            return EtsMultimapAllocationError;
         }
     }
 
@@ -115,23 +114,23 @@ EtsMultimapStatus ets_multimap_insert(
         term key = term_get_tuple_element(entry->tuple, multimap->keypos);
 
         struct EtsMultimapNode *node;
-        if (ets_multimap_find_node(multimap, key, &node, global) == EtsMultimapError) {
+        if (ets_multimap_find_node(multimap, key, &node, global) == EtsMultimapAllocationError) {
             error = true;
-            status = EtsMultimapError;
+            status = EtsMultimapAllocationError;
             break;
         }
 
         if (node == NULL) {
-            uint32_t idx = hash_term(key, global) % NUM_BUCKETS;
             struct EtsMultimapNode *new_node = ets_multimap_node_new(NULL, entry);
             if (IS_NULL_PTR(new_node)) {
                 error = true;
-                status = EtsMultimapError;
+                status = EtsMultimapAllocationError;
                 break;
             }
 
             assert(new_node->entries != NULL);
 
+            uint32_t idx = hash_term(key, global) % NUM_BUCKETS;
             new_node->next = multimap->buckets[idx];
             multimap->buckets[idx] = new_node;
             continue;
@@ -142,9 +141,9 @@ EtsMultimapStatus ets_multimap_insert(
         if (multimap->type == EtsMultimapTypeSet) {
             bool exists;
 
-            if (ets_multimap_tuple_exists(node, entry->tuple, &exists, global) == EtsMultimapError) {
+            if (ets_multimap_tuple_exists(node, entry->tuple, &exists, global) == EtsMultimapAllocationError) {
                 error = true;
-                status = EtsMultimapError;
+                status = EtsMultimapAllocationError;
                 break;
             }
 
@@ -182,9 +181,8 @@ EtsMultimapStatus ets_multimap_lookup(
     *count = 0;
 
     EtsMultimapStatus result;
-
     struct EtsMultimapNode *node;
-    if ((result = ets_multimap_find_node(multimap, key, &node, global)) != EtsMultimapOk) {
+    if ((result = ets_multimap_find_node(multimap, key, &node, global)) == EtsMultimapAllocationError) {
         return result;
     }
 
@@ -209,6 +207,8 @@ EtsMultimapStatus ets_multimap_lookup(
         return EtsMultimapError;
     }
 
+    // TODO: Return in insertion order?
+
     size_t i = 0;
     for (struct EtsMultimapEntry *iter = node->entries; iter != NULL; iter = iter->next, i++) {
         assert(i < *count);
@@ -224,8 +224,8 @@ EtsMultimapStatus ets_multimap_remove(
     GlobalContext *global
 ) {
     struct EtsMultimapNode *node;
-    if (ets_multimap_find_node(multimap, key, &node, global) != EtsMultimapOk) {
-        return EtsMultimapError;
+    if (ets_multimap_find_node(multimap, key, &node, global) == EtsMultimapAllocationError) {
+        return EtsMultimapAllocationError;
     }
 
     if (node == NULL) {
@@ -275,7 +275,7 @@ static EtsMultimapStatus ets_multimap_find_node(
         TermCompareResult res = term_compare(key, node_key(multimap, node), TermCompareExact, global);
 
         if (res == TermCompareMemoryAllocFail) {
-            return EtsMultimapError;
+            return EtsMultimapAllocationError;
         }
 
         if (res == TermEquals) {
@@ -357,7 +357,7 @@ static EtsMultimapStatus ets_multimap_tuple_exists(
     for (struct EtsMultimapEntry *iter = node->entries; iter != NULL; iter = iter->next) {
         TermCompareResult res = term_compare(tuple, iter->tuple, TermCompareExact, global);
         if (res == TermCompareMemoryAllocFail) {
-            return EtsMultimapError;
+            return EtsMultimapAllocationError;
         }
 
         if (res == TermEquals) {
