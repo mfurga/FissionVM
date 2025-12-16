@@ -21,8 +21,8 @@
 #ifndef _POPCORN_ETS_MULTIMAP_H_
 #define _POPCORN_ETS_MULTIMAP_H_
 
-#include "term.h"
 #include "globalcontext.h"
+#include "term.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,9 +32,9 @@ extern "C" {
 
 typedef enum EtsMultimapType
 {
-    EtsMultimapTypeOne,  /* Only one value per key */
-    EtsMultimapTypeSet,  /* Only unique values per key */
-    EtsMultimapTypeList  /* Allow duplicate values per key */
+    EtsMultimapTypeOne, /* Only one value per key */
+    EtsMultimapTypeSet, /* Only unique values per key */
+    EtsMultimapTypeList /* Allow duplicate values per key */
 } EtsMultimapType;
 
 typedef enum EtsMultimapStatus
@@ -65,39 +65,30 @@ struct EtsMultimapEntry
     Heap *heap;
 };
 
-struct EtsMultimap *ets_multimap_new(
-    EtsMultimapType type,
-    size_t keypos
-);
+struct EtsMultimap *ets_multimap_new(EtsMultimapType type, size_t keypos);
 
-void ets_multimap_delete(
-    struct EtsMultimap *multimap,
-    GlobalContext *global
-);
+void ets_multimap_delete(struct EtsMultimap *multimap, GlobalContext *global);
 
 EtsMultimapStatus ets_multimap_insert(
     struct EtsMultimap *multimap,
     term *tuples,
     size_t count,
-    GlobalContext *global
-);
+    GlobalContext *global);
 
 EtsMultimapStatus ets_multimap_lookup(
     struct EtsMultimap *multimap,
     term key,
     term **tuples,
     size_t *count,
-    GlobalContext *global
-);
+    GlobalContext *global);
 
 EtsMultimapStatus ets_multimap_remove(
     struct EtsMultimap *multimap,
     term key,
-    GlobalContext *global
-);
+    GlobalContext *global);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // _POPCORN_ETS_MULTIMAP_H_
+#endif // _POPCORN_ETS_MULTIMAP_H_

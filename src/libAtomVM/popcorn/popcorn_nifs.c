@@ -583,8 +583,7 @@ static term nif_ets_new(Context *ctx, int argc, term argv[])
         access,
         (size_t) index,
         &table,
-        ctx
-    );
+        ctx);
 
     switch (result) {
         case Popcorn2EtsOk:
@@ -623,7 +622,7 @@ static term nif_ets_insert(Context *ctx, int argc, term argv[])
         case Popcorn2EtsBadEntry:
             RAISE_ERROR(BADARG_ATOM);
         case Popcorn2EtsAllocationFailure:
-            RAISE_ERROR(MEMORY_ATOM);  // TODO: why not OUT_OF_MEMORY_ATOM?
+            RAISE_ERROR(MEMORY_ATOM); // TODO: why not OUT_OF_MEMORY_ATOM?
         default:
             AVM_ABORT();
     }

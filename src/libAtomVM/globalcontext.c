@@ -233,6 +233,7 @@ COLD_FUNC void globalcontext_destroy(GlobalContext *glb)
 
     ets_destroy(&glb->ets, glb);
     popcorn_ets_destroy(&glb->popcorn_ets, glb);
+    popcorn2_ets_destroy(&glb->popcorn2_ets, glb);
 
     // Destroy refc binaries including resources
     // (this list should be empty if resources were properly refcounted)

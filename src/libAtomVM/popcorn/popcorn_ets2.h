@@ -77,8 +77,7 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
     Popcorn2EtsTableAccess access,
     size_t keypos,
     term *ret,
-    Context *ctx
-);
+    Context *ctx);
 void popcorn2_ets_delete_owned_tables(struct Popcorn2Ets *ets, int32_t process_id, GlobalContext *global);
 
 Popcorn2EtsStatus popcorn2_ets_insert(term name_or_ref, term entry, bool new, Context *ctx);
@@ -89,4 +88,4 @@ Popcorn2EtsStatus popcorn2_ets_delete(term name_or_ref, term key, Context *ctx);
 }
 #endif
 
-#endif  // _POPCORN2_ETS_H_
+#endif // _POPCORN2_ETS_H_
