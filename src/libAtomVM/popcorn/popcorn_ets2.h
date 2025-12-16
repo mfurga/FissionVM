@@ -22,13 +22,11 @@
 #ifndef _POPCORN2_ETS_H_
 #define _POPCORN2_ETS_H_
 
-struct Context;
-struct GlobalContext;
+#include <stdbool.h>
 
 #include "list.h"
 #include "synclist.h"
 #include "term.h"
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,11 +53,9 @@ typedef enum Popcorn2EtsStatus
     Popcorn2EtsOk,
     Popcorn2EtsKeyExists,
     Popcorn2EtsTableNameExists,
-
     Popcorn2EtsBadEntry,
     Popcorn2EtsBadAccess,
-
-    Popcorn2EtsAllocationFailure
+    Popcorn2EtsAllocationError
 } Popcorn2EtsStatus;
 
 struct Popcorn2Ets

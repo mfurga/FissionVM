@@ -557,21 +557,21 @@ static term nif_ets_new(Context *ctx, int argc, term argv[])
     term private = interop_kv_get_value(options, ATOM_STR("\x7", "private"), ctx->global);
     term public = interop_kv_get_value(options, ATOM_STR("\x6", "public"), ctx->global);
 
-    Popcorn2EtsTableAccess access = PopcornEtsAccessProtected;
+    Popcorn2EtsTableAccess access = Popcorn2EtsTableAccessProtected;
     if (!term_is_invalid_term(private)) {
-        access = PopcornEtsAccessPrivate;
+        access = Popcorn2EtsTableAccessPrivate;
     } else if (!term_is_invalid_term(public)) {
-        access = PopcornEtsAccessPublic;
+        access = Popcorn2EtsTableAccessPublic;
     }
 
     term bag = interop_kv_get_value(options, ATOM_STR("\x3", "bag"), ctx->global);
     term duplicate_bag = interop_kv_get_value(options, ATOM_STR("\xd", "duplicate_bag"), ctx->global);
 
-    Popcorn2EtsTableType type = PopcornEtsTableSet;
+    Popcorn2EtsTableType type = Popcorn2EtsTableSet;
     if (!term_is_invalid_term(bag)) {
-        type = PopcornEtsTableBag;
+        type = Popcorn2EtsTableBag;
     } else if (!term_is_invalid_term(duplicate_bag)) {
-        type = PopcornEtsTableDuplicateBag;
+        type = Popcorn2EtsTableDuplicateBag;
     }
 
     term table = term_invalid_term();
@@ -590,7 +590,7 @@ static term nif_ets_new(Context *ctx, int argc, term argv[])
             return table;
         case Popcorn2EtsTableNameExists:
             RAISE_ERROR(BADARG_ATOM);
-        case Popcorn2EtsAllocationFailure:
+        case Popcorn2EtsAllocationError:
             RAISE_ERROR(MEMORY_ATOM);
         default:
             AVM_ABORT();
@@ -621,8 +621,8 @@ static term nif_ets_insert(Context *ctx, int argc, term argv[])
         case Popcorn2EtsBadAccess:
         case Popcorn2EtsBadEntry:
             RAISE_ERROR(BADARG_ATOM);
-        case Popcorn2EtsAllocationFailure:
-            RAISE_ERROR(MEMORY_ATOM); // TODO: why not OUT_OF_MEMORY_ATOM?
+        case Popcorn2EtsAllocationError:
+            RAISE_ERROR(OUT_OF_MEMORY_ATOM);
         default:
             AVM_ABORT();
     }
@@ -647,8 +647,8 @@ static term nif_ets_insert_new(Context *ctx, int argc, term argv[])
         case Popcorn2EtsBadAccess:
         case Popcorn2EtsBadEntry:
             RAISE_ERROR(BADARG_ATOM);
-        case Popcorn2EtsAllocationFailure:
-            RAISE_ERROR(MEMORY_ATOM);
+        case Popcorn2EtsAllocationError:
+            RAISE_ERROR(OUT_OF_MEMORY_ATOM);
         default:
             AVM_ABORT();
     }
@@ -672,8 +672,8 @@ static term nif_ets_lookup(Context *ctx, int argc, term argv[])
             return ret;
         case Popcorn2EtsBadAccess:
             RAISE_ERROR(BADARG_ATOM);
-        case Popcorn2EtsAllocationFailure:
-            RAISE_ERROR(MEMORY_ATOM);
+        case Popcorn2EtsAllocationError:
+            RAISE_ERROR(OUT_OF_MEMORY_ATOM);
         default:
             AVM_ABORT();
     }
@@ -826,8 +826,10 @@ static term nif_ets_delete(Context *ctx, int argc, term argv[])
     if (argc == 2) {
         result = popcorn2_ets_delete(name_or_ref, argv[1], ctx);
     } else {
-        term ret = term_invalid_term();
-        result = popcorn_ets_drop_table(name_or_ref, &ret, ctx);
+        term ret = TRUE_ATOM;
+        result = Popcorn2EtsOk;
+        // TODO
+        // result = popcorn_ets_drop_table(name_or_ref, &ret, ctx);
     }
 
     switch (result) {
@@ -835,8 +837,8 @@ static term nif_ets_delete(Context *ctx, int argc, term argv[])
             return TRUE_ATOM;
         case Popcorn2EtsBadAccess:
             RAISE_ERROR(BADARG_ATOM);
-        case Popcorn2EtsAllocationFailure:
-            RAISE_ERROR(MEMORY_ATOM);
+        case Popcorn2EtsAllocationError:
+            RAISE_ERROR(OUT_OF_MEMORY_ATOM);
         default:
             AVM_ABORT();
     }

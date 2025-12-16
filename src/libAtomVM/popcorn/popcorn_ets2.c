@@ -30,7 +30,6 @@
 #include "term.h"
 #include "utils.h"
 
-#define ETS_NO_INDEX SIZE_MAX
 #define ETS_ANY_PROCESS -1
 
 #ifndef AVM_NO_SMP
@@ -133,7 +132,7 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
 
     struct Popcorn2EtsTable *table = malloc(sizeof(struct Popcorn2EtsTable));
     if (IS_NULL_PTR(table)) {
-        return Popcorn2EtsAllocationFailure;
+        return Popcorn2EtsAllocationError;
     }
 
     EtsMultimapType multimap_type = EtsMultimapTypeOne;
@@ -146,7 +145,7 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
     struct EtsMultimap *multimap = ets_multimap_new(multimap_type, keypos);
     if (IS_NULL_PTR(multimap)) {
         free(table);
-        return Popcorn2EtsAllocationFailure;
+        return Popcorn2EtsAllocationError;
     }
 
     list_init(&table->head);
@@ -170,7 +169,7 @@ Popcorn2EtsStatus popcorn2_ets_create_table(
         if (UNLIKELY(memory_ensure_free_opt(ctx, REF_SIZE, MEMORY_CAN_SHRINK) != MEMORY_GC_OK)) {
             ets_multimap_delete(multimap, ctx->global);
             free(table);
-            return Popcorn2EtsAllocationFailure;
+            return Popcorn2EtsAllocationError;
         }
         *ret = term_from_ref_ticks(table->ref_ticks, &ctx->heap);
     }
@@ -199,7 +198,7 @@ Popcorn2EtsStatus popcorn2_ets_insert(term name_or_ref, term entry, bool new, Co
     } else if (term_is_list(entry)) {
         result = popcorn2_ets_insert_many(table, entry, new, ctx);
     } else {
-        // TODO: return error?
+        result = Popcorn2EtsBadEntry;
     }
 
     SMP_UNLOCK(table);
@@ -227,9 +226,9 @@ Popcorn2EtsStatus popcorn2_ets_lookup(term name_or_ref, term key, term *ret, Con
     size_t count = 0;
 
     EtsMultimapStatus result = ets_multimap_lookup(table->multimap, key, &tuples, &count, ctx->global);
-    if (result != EtsMultimapOk) {
+    if (result == EtsMultimapAllocationError) {
         SMP_UNLOCK(table);
-        return Popcorn2EtsAllocationFailure; // TODO: rename
+        return Popcorn2EtsAllocationError;
     }
 
     if (count == 0) {
@@ -244,13 +243,13 @@ Popcorn2EtsStatus popcorn2_ets_lookup(term name_or_ref, term key, term *ret, Con
         sz += memory_estimate_usage(tuples[i]);
     }
 
-    if (UNLIKELY(memory_ensure_free_opt(ctx, sz, MEMORY_CAN_SHRINK) != MEMORY_GC_OK)) {
+    if (UNLIKELY(memory_ensure_free_opt(ctx, sz + count * CONS_SIZE, MEMORY_CAN_SHRINK) != MEMORY_GC_OK)) {
         SMP_UNLOCK(table);
-        return Popcorn2EtsAllocationFailure;
+        return Popcorn2EtsAllocationError;
     }
 
     term list = term_nil();
-    for (size_t i = 0; i < count; i++) {
+    for (int i = count - 1; i >= 0; i--) {
         term tuple = memory_copy_term_tree(&ctx->heap, tuples[i]);
         list = term_list_prepend(tuple, list, &ctx->heap);
     }
@@ -403,11 +402,11 @@ static Popcorn2EtsStatus popcorn2_ets_insert_one(
         case EtsMultimapOk:
             return Popcorn2EtsOk;
         case EtsMultimapAllocationError:
-            return Popcorn2EtsAllocationFailure;
+            return Popcorn2EtsAllocationError;
         case EtsMultimapKeyExists:
             return Popcorn2EtsKeyExists;
         default:
-            return Popcorn2EtsAllocationFailure;
+            return Popcorn2EtsAllocationError;
     }
 }
 
@@ -439,7 +438,7 @@ static Popcorn2EtsStatus popcorn2_ets_insert_many(
 
     term *to_insert = malloc(sizeof(term) * count);
     if (IS_NULL_PTR(to_insert)) {
-        return Popcorn2EtsAllocationFailure;
+        return Popcorn2EtsAllocationError;
     }
 
     for (size_t i = 0; !term_is_nil(tuples); tuples = term_get_list_tail(tuples), i++) {
@@ -454,10 +453,10 @@ static Popcorn2EtsStatus popcorn2_ets_insert_many(
         case EtsMultimapOk:
             return Popcorn2EtsOk;
         case EtsMultimapAllocationError:
-            return Popcorn2EtsAllocationFailure;
+            return Popcorn2EtsAllocationError;
         case EtsMultimapKeyExists:
             return Popcorn2EtsKeyExists;
         default:
-            return Popcorn2EtsAllocationFailure;
+            return Popcorn2EtsAllocationError;
     }
 }

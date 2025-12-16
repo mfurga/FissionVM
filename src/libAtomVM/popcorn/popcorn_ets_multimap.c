@@ -189,7 +189,6 @@ EtsMultimapStatus ets_multimap_lookup(
         return EtsMultimapOk;
     }
 
-    assert(node != NULL);
     assert(node->entries != NULL);
 
     for (struct EtsMultimapEntry *iter = node->entries; iter != NULL; iter = iter->next) {
@@ -206,11 +205,9 @@ EtsMultimapStatus ets_multimap_lookup(
         return EtsMultimapError;
     }
 
-    // TODO: Return in insertion order?
-
-    size_t i = 0;
-    for (struct EtsMultimapEntry *iter = node->entries; iter != NULL; iter = iter->next, i++) {
-        assert(i < *count);
+    int i = *count - 1;
+    for (struct EtsMultimapEntry *iter = node->entries; iter != NULL; iter = iter->next, i--) {
+        assert(i >= 0);
         (*tuples)[i] = iter->tuple;
     }
 
